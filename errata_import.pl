@@ -18,6 +18,7 @@
 #
 # History:
 # 20150616 - Initial version (Based on Steve Meier's 20150420 script)
+# 20150628 - Enter errata in a format Katello undertands.
 #
 
 # Test for required modules
@@ -26,6 +27,7 @@
 # Load modules
 use strict;
 use warnings;
+use Switch;
 use Data::Dumper;
 use Getopt::Long;
 import Frontier::Client;
@@ -50,6 +52,7 @@ my $result;
 my ($pkg, $allpkg, @pkgdetails, $package);
 my @packages;
 my @channels;
+my $type;
 my ($advisory, $advid);
 my %existing;
 
@@ -188,11 +191,19 @@ foreach $advisory (sort(keys(%{$xml}))) {
       close $fh;
       #################################
 
+      ####### Select correct type #####
+      switch ($xml->{$advisory}->{type}) {
+		case "Security Advisory" {  $type = "security"; }
+		case "Bug Fix Advisory"	{ $type = "bugfix"; }
+		case "Product Enhancement Advisory" { $type = "enhancement"; }
+		else { $type = $xml->{$advisory}->{type}; }
+      }
+      #################################
+
       ####### Upload the errata #######
-      $result = `pulp-admin rpm repo uploads erratum --title="$xml->{$advisory}->{synopsis}" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$xml->{$advisory}->{type}" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
+      $result = `pulp-admin rpm repo uploads erratum --title="$xml->{$advisory}->{synopsis}" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
 
       &info("$result\n");
-
       #################################
 
     } else {
@@ -204,7 +215,6 @@ foreach $advisory (sort(keys(%{$xml}))) {
     &info("Errata for $advid already exists\n");
   }
 }
-
 
 &logout;
 exit;

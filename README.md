@@ -6,7 +6,7 @@ It relies on preformatted information since parsing email
 is the road to madness...
 
 To run this script on CentOS you need 
-pulp-admin-client pulp-rpm-admin-extensions perl-XML-Simple, perl-Text-Unidecode and perl-Frontier-RPC
+pulp-admin-client, pulp-rpm-admin-extensions, perl-Switch, perl-XML-Simple, perl-Text-Unidecode and perl-Frontier-RPC
 
 This script was modified from Steve Meier's script which
 can be found at http://cefs.steve-meier.de/
