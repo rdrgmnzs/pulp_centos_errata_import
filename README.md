@@ -11,6 +11,12 @@ pulp-admin-client, pulp-rpm-admin-extensions, perl-Switch, perl-XML-Simple, perl
 This script was modified from Steve Meier's script which
 can be found at http://cefs.steve-meier.de/
 
+# Usage
+  1. Sync repositories
+  2. Run the script  
+     wget -N http://cefs.steve-meier.de/errata.latest.xml  
+     ./errata_import.pl --errata=errata.latest.xml --user=[admin] --password=[pass]  
+  3. Sync repositories so that errata is published.
 
 # Warning
 

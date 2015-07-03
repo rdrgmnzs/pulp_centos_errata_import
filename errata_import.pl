@@ -19,6 +19,8 @@
 # History:
 # 20150616 - Initial version (Based on Steve Meier's 20150420 script)
 # 20150628 - Enter errata in a format Katello undertands.
+# 20150702 - Replace commas in synopsis with semicolon as we are using
+#            csv files for inport and commas interfeer with that.
 #
 
 # Test for required modules
@@ -52,7 +54,7 @@ my $result;
 my ($pkg, $allpkg, @pkgdetails, $package);
 my @packages;
 my @channels;
-my $type;
+my ($type, $synopsis);
 my ($advisory, $advid);
 my %existing;
 
@@ -174,8 +176,12 @@ foreach $advisory (sort(keys(%{$xml}))) {
       ##### Create reference file ######
       my $reffile = "/tmp/$advid.ref.csv";
       open(my $fh, '>'.$reffile) or die "Could not open file '$reffile' $!";
+
+      $synopsis = $xml->{$advisory}->{synopsis};
+      $synopsis =~ s/,/;/g;
+
       foreach my $reference (split / +/, $xml->{$advisory}->{references}) {
-        print $fh "$reference,$xml->{$advisory}->{type},$advid,$xml->{$advisory}->{synopsis}\n";
+        print $fh "$reference,$xml->{$advisory}->{type},$advid,$synopsis\n";
       }
       close $fh;
       ##################################
