@@ -5,8 +5,12 @@ This script imports CentOS Errata into Katello
 It relies on preformatted information since parsing email
 is the road to madness...
 
-To run this script on CentOS you need 
-pulp-admin-client, pulp-rpm-admin-extensions, perl-Switch, perl-XML-Simple, perl-Text-Unidecode and perl-Frontier-RPC
+To run this script on CentOS you need
+ - pulp-admin-client
+ - pulp-rpm-admin-extensions
+ - perl-Switch, perl-XML-Simple
+ - perl-Text-Unidecode 
+ - perl-Frontier-RPC
 
 This script was modified from Steve Meier's script which
 can be found at http://cefs.steve-meier.de/
@@ -16,7 +20,7 @@ can be found at http://cefs.steve-meier.de/
   2. Run the script  
      wget -N http://cefs.steve-meier.de/errata.latest.xml  
      ./errata_import.pl --errata=errata.latest.xml --user=[admin] --password=[pass]  
-  3. Sync repositories so that errata is published.
+  3. Sync repositories so that errata is published. (The errata will not show up on the Katello/Foreman interface until this step is completed. )
 
 # Warning
 
