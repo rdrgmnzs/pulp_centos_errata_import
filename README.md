@@ -5,7 +5,7 @@ This script imports CentOS Errata into Katello
 It relies on preformatted information since parsing email
 is the road to madness...
 
-To run this script on CentOS you need
+To run this script on CentOS you need:
  - pulp-admin-client
  - pulp-rpm-admin-extensions
  - perl-Switch, perl-XML-Simple
