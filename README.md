@@ -30,7 +30,8 @@ can be found at http://cefs.steve-meier.de/
 - I have no previews experience with perl, so this script
   will probably look horrific to anyone familiar with the
   language.
------------------------------------------------
+
+# Contributing
 
 Please feel free to make pull requests for any
 issues or errors in the script you may find.
