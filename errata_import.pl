@@ -21,6 +21,7 @@
 # 20150628 - Enter errata in a format Katello undertands.
 # 20150702 - Replace commas in synopsis with semicolon as we are using
 #            csv files for inport and commas interfeer with that.
+# 20150819 - Escape the + character in a file name - Thanks @geronimodings
 #
 
 # Test for required modules
@@ -190,7 +191,12 @@ foreach $advisory (sort(keys(%{$xml}))) {
       my $packfile = "/tmp/$advid.pack.csv";
       open( $fh, '>'.$packfile) or die "Could not open file '$packfile' $!";
       foreach my $package (@packages) {
-        @pkgdetails = `pulp-admin rpm repo content rpm --repo-id=$name2channel{$package} --match="filename=$package" --fields=name,version,release,epoch,arch,checksum,checksumtype | awk '{print \$2}'`;
+
+        # Escape plus signs in file names.
+        my $filename = $package;
+        $filename =~ s/\+/\\\+/g;
+
+        @pkgdetails = `pulp-admin rpm repo content rpm --repo-id=$name2channel{$package} --match="filename=$filename" --fields=name,version,release,epoch,arch,checksum,checksumtype | awk '{print \$2}'`;
         chomp @pkgdetails;
         print $fh "$pkgdetails[4],$pkgdetails[6],$pkgdetails[5],$pkgdetails[3],$pkgdetails[0],$package,$pkgdetails[1],$pkgdetails[2],N/A\n";
       }
