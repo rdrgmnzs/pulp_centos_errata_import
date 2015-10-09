@@ -8,10 +8,8 @@ is the road to madness...
 To run this script on CentOS you need:
  - pulp-admin-client
  - pulp-rpm-admin-extensions
- - perl-Switch
  - perl-XML-Simple
  - perl-Text-Unidecode 
- - perl-Frontier-RPC
 
 This script was modified from Steve Meier's script for spacewalk 
 which can be found at http://cefs.steve-meier.de/

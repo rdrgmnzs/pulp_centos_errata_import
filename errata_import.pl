@@ -30,10 +30,8 @@
 # Load modules
 use strict;
 use warnings;
-use Switch;
 use Data::Dumper;
 use Getopt::Long;
-import Frontier::Client;
 import Text::Unidecode;
 import XML::Simple;
 
@@ -204,12 +202,10 @@ foreach $advisory (sort(keys(%{$xml}))) {
       #################################
 
       ####### Select correct type #####
-      switch ($xml->{$advisory}->{type}) {
-		case "Security Advisory" {  $type = "security"; }
-		case "Bug Fix Advisory"	{ $type = "bugfix"; }
-		case "Product Enhancement Advisory" { $type = "enhancement"; }
+		if($xml->{$advisory}->{type} eq "Security Advisory") {  $type = "security"; }
+		elsif($xml->{$advisory}->{type} eq "Bug Fix Advisory")	{ $type = "bugfix"; }
+		elsif($xml->{$advisory}->{type} eq "Product Enhancement Advisory") { $type = "enhancement"; }
 		else { $type = $xml->{$advisory}->{type}; }
-      }
       #################################
 
       ####### Upload the errata #######
@@ -270,9 +266,6 @@ sub usage() {
 }
 
 sub eval_modules() {
-  eval { require Frontier::Client; };
-  if ($@) { die "ERROR: You are missing XML::Simple\n       CentOS: yum install perl-Frontier-RPC\n"; };
-
   eval { require Text::Unidecode; };
   if ($@) { die "ERROR: You are missing Text::Unidecode\n       CentOS: yum install perl-Text-Unidecode\n"; };
 
