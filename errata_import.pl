@@ -30,10 +30,8 @@
 # Load modules
 use strict;
 use warnings;
-use Switch;
 use Data::Dumper;
 use Getopt::Long;
-import Frontier::Client;
 import Text::Unidecode;
 import XML::Simple;
 
@@ -58,6 +56,7 @@ my @channels;
 my ($type, $synopsis);
 my ($advisory, $advid);
 my %existing;
+my @repolist;
 
 # Print call and parameters if in debug mode (GetOptions will clear @ARGV)
 if (join(' ',@ARGV) =~ /--debug/) { print STDERR "DEBUG: Called as $0 ".join(' ',@ARGV)."\n"; }
@@ -67,7 +66,8 @@ $getopt = GetOptions( 'errata=s'		=> \$erratafile,
                       'debug'			=> \$debug,
                       'quiet'			=> \$quiet,
                       'user=s'			=> \$user,
-                      'password=s'		=> \$password
+                      'password=s'		=> \$password,
+                      'include-repo=s{,}'	=> \@repolist
                      );
 
 # Check for arguments
@@ -113,11 +113,18 @@ if (defined($xml->{meta}->{minver})) {
 ########################
 &info("Getting server inventory\n");
 
-my @repolist = `pulp-admin repo list -s | awk '{print \$1}' `;
+if(!@repolist) {
+  &debug("Getting full repo list\n");
+  @repolist = `pulp-admin repo list -s | awk '{print \$1}' `;
+}
+else {
+  &debug("Using repo list from command line options: ".join(', ',@repolist)."\n");
+}
 
 # Go through each channel 
 foreach my $repo (sort(@repolist)) {
   chomp $repo;
+  &debug("Getting errata from $repo\n");
 
   # Collect existing errata
   my @repoerrata = `pulp-admin rpm repo content errata --repo-id=$repo --fields=id | grep Id: | awk '{print \$2}' `;
@@ -204,12 +211,10 @@ foreach $advisory (sort(keys(%{$xml}))) {
       #################################
 
       ####### Select correct type #####
-      switch ($xml->{$advisory}->{type}) {
-		case "Security Advisory" {  $type = "security"; }
-		case "Bug Fix Advisory"	{ $type = "bugfix"; }
-		case "Product Enhancement Advisory" { $type = "enhancement"; }
+		if($xml->{$advisory}->{type} eq "Security Advisory") {  $type = "security"; }
+		elsif($xml->{$advisory}->{type} eq "Bug Fix Advisory")	{ $type = "bugfix"; }
+		elsif($xml->{$advisory}->{type} eq "Product Enhancement Advisory") { $type = "enhancement"; }
 		else { $type = $xml->{$advisory}->{type}; }
-      }
       #################################
 
       ####### Upload the errata #######
@@ -263,6 +268,9 @@ sub usage() {
   print "  --user\t\tPulp user\n";
   print "  --password\t\tPulp password\n";
   print "\n";
+  print "OPTIONAL\n";
+  print "  --include-repo\tOnly consider packages and errata in the provided repositories. Can be provided multiple times\n";
+  print "\n";
   print "LOGGING:\n";
   print "  --quiet\t\tOnly print warnings and errors\n";
   print "  --debug\t\tSet verbosity to debug (use this when reporting issues!)\n";
@@ -270,9 +278,6 @@ sub usage() {
 }
 
 sub eval_modules() {
-  eval { require Frontier::Client; };
-  if ($@) { die "ERROR: You are missing XML::Simple\n       CentOS: yum install perl-Frontier-RPC\n"; };
-
   eval { require Text::Unidecode; };
   if ($@) { die "ERROR: You are missing Text::Unidecode\n       CentOS: yum install perl-Text-Unidecode\n"; };
 
