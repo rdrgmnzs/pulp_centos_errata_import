@@ -1,0 +1,17 @@
+2015-10-09 Release 0.1.0
+- Add --include-repo flag to allow you to restrict which repos
+  are worked on - @ASCIIDuck
+- Remove dependencies on Frontier::Client and Switch. - @ASCIIDuck
+
+2015-08-19 Release 0.1.0
+- Escape the + character in a file name - Thanks @geronimodings
+
+2015-07-02 Release 0.1.0
+- Replace commas in synopsis with semicolon as we are using
+  csv files for inport and commas interfeer with that.
+
+2015-06-28 Release 0.1.0
+- Enter errata in a format Katello undertands.
+
+2015-06-16 Release 0.1.0
+- Initial Release (Based on Steve Meier's 20150420 script)
