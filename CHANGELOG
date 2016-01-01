@@ -1,3 +1,6 @@
+2015-12-31 Release 0.3.0
+- Add the ability to import descriptions from redhats OVAL XML file.
+
 2015-10-09 Release 0.2.0
 - Add --include-repo flag to allow you to restrict which repos
   are worked on - @ASCIIDuck

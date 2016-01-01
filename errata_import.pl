@@ -10,19 +10,7 @@
 # This script was modified from Steve Meier's script which
 # can be found at http://cefs.steve-meier.de/
 #
-# Author: Steve Meier
-# Date: 28.07.2014
-#
-# Katello re-write: Rodrigo Menezes
-# Date: 16.06.2015
-#
-# History:
-# 20150616 - Initial version (Based on Steve Meier's 20150420 script)
-# 20150628 - Enter errata in a format Katello undertands.
-# 20150702 - Replace commas in synopsis with semicolon as we are using
-#            csv files for inport and commas interfeer with that.
-# 20150819 - Escape the + character in a file name - Thanks @geronimodings
-#
+
 
 # Test for required modules
 &eval_modules;
@@ -42,7 +30,7 @@ my $version = "20150616";
 $| = 1;
 my $user;
 my $password;
-my ($xml, $erratafile);
+my ($xml, $erratafile, $rhsaxml, $rhsaovalfile);
 my (%name2id, %name2channel);
 my $publish = 0; # do not publish by default
 my $debug = 0;
@@ -54,7 +42,7 @@ my ($pkg, $allpkg, @pkgdetails, $package);
 my @packages;
 my @channels;
 my ($type, $synopsis);
-my ($advisory, $advid);
+my ($advisory, $advid, $ovalid);
 my %existing;
 my @repolist;
 
@@ -63,6 +51,7 @@ if (join(' ',@ARGV) =~ /--debug/) { print STDERR "DEBUG: Called as $0 ".join(' '
 
 # Parse arguments
 $getopt = GetOptions( 'errata=s'		=> \$erratafile,
+                      'rhsa-oval=s'		=> \$rhsaovalfile,
                       'debug'			=> \$debug,
                       'quiet'			=> \$quiet,
                       'user=s'			=> \$user,
@@ -105,6 +94,21 @@ if (defined($xml->{meta}->{minver})) {
   if ($xml->{meta}->{minver} > $version) {
     &error("This script is too old to handle this data file. Please update.\n");
     exit 5;
+  }
+}
+
+##################################
+# Load optional Red Hat OVAL XML #
+##################################
+if (defined($rhsaovalfile)) {
+  if (-f $rhsaovalfile) {
+    &info("Loading Red Hat OVAL XML\n");
+    if (not($rhsaxml = XMLin($rhsaovalfile))) {
+      &error("Could not parse Red Hat OVAL file!\n");
+      exit 4;
+    }
+
+    &debug("Red Hat OVAL XML loaded successfully\n");
   }
 }
 
@@ -166,12 +170,33 @@ foreach $advisory (sort(keys(%{$xml}))) {
   # Start processing
   &debug("Processing $advid\n");
 
+  # Generate OVAL ID for security errata
+  $ovalid = "";
+  if ($advid =~ /CESA/) {
+    if ($advid =~ /CESA-(\d+):(\d+)/) {
+      $ovalid = "oval:com.redhat.rhsa:def:$1".sprintf("%04d", $2);
+      &debug("Processing $advid -- OVAL ID is $ovalid\n");
+    }
+  }
+
   # Check if the errata already exists
   if (not(defined($existing{$advid}))) {
     # Errata does not exist yet
     
     # Find package IDs mentioned in errata
     &find_packages($advisory);
+
+    # Insert description from Red Hat OVAL file, if available (only for Security)
+    if (defined($ovalid)) {
+      if ( defined($rhsaxml->{definitions}->{definition}->{$ovalid}->{metadata}->{description}) ) {
+        &debug("Using description from $ovalid\n");
+        $xml->{$advisory}->{description} = $rhsaxml->{definitions}->{definition}->{$ovalid}->{metadata}->{description};
+        # Remove Umlauts -- API throws errors if they are included
+        $xml->{$advisory}->{description} = unidecode($xml->{$advisory}->{description});
+        # Escape quotes in the description
+        $xml->{$advisory}->{description} =~ s/\"/\\\"/g;
+      }
+    }
 
     if (@packages >= 1) {
       # If there is at least one matching package create the errata?
@@ -269,6 +294,7 @@ sub usage() {
   print "  --password\t\tPulp password\n";
   print "\n";
   print "OPTIONAL\n";
+  print "  --rhsa-oval\tOVAL XML file from Red Hat (recommended)\n";
   print "  --include-repo\tOnly consider packages and errata in the provided repositories. Can be provided multiple times\n";
   print "\n";
   print "LOGGING:\n";
