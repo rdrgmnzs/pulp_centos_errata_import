@@ -4,7 +4,7 @@
 # It relies on preformatted information since parsing email
 # is the road to madness...
 #
-# To run this script on CentOS 5.x you need 
+# To run this script on CentOS 5.x you need
 # perl-XML-Simple, perl-Text-Unidecode and perl-Frontier-RPC
 #
 # This script was modified from Steve Meier's script which
@@ -41,7 +41,7 @@ my $result;
 my ($pkg, $allpkg, @pkgdetails, $package);
 my @packages;
 my @channels;
-my ($type, $synopsis);
+my ($title, $type, $synopsis, $severity);
 my ($advisory, $advid, $ovalid);
 my %existing;
 my @repolist;
@@ -125,7 +125,7 @@ else {
   &debug("Using repo list from command line options: ".join(', ',@repolist)."\n");
 }
 
-# Go through each channel 
+# Go through each channel
 foreach my $repo (sort(@repolist)) {
   chomp $repo;
   &debug("Getting errata from $repo\n");
@@ -160,7 +160,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
   # Restore "proper" name of adivsory
   $advid = $advisory;
   $advid =~ s/--/:/;
-  
+
   @packages = ();
   @channels = ();
 
@@ -182,7 +182,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
   # Check if the errata already exists
   if (not(defined($existing{$advid}))) {
     # Errata does not exist yet
-    
+
     # Find package IDs mentioned in errata
     &find_packages($advisory);
 
@@ -236,14 +236,30 @@ foreach $advisory (sort(keys(%{$xml}))) {
       #################################
 
       ####### Select correct type #####
-		if($xml->{$advisory}->{type} eq "Security Advisory") {  $type = "security"; }
-		elsif($xml->{$advisory}->{type} eq "Bug Fix Advisory")	{ $type = "bugfix"; }
-		elsif($xml->{$advisory}->{type} eq "Product Enhancement Advisory") { $type = "enhancement"; }
-		else { $type = $xml->{$advisory}->{type}; }
+    if($xml->{$advisory}->{type} eq "Security Advisory") {
+      $type = "security";
+      $severity = $xml->{$advisory}->{severity};
+      ### Remove redundant severity update
+      $title = $xml->{$advisory}->{synopsis};
+      $title =~ s/$severity //g;
+    }
+    elsif($xml->{$advisory}->{type} eq "Bug Fix Advisory") {
+      $type = "bugfix";
+      $severity = "";
+      $title = $xml->{$advisory}->{synopsis};
+    }
+    elsif($xml->{$advisory}->{type} eq "Product Enhancement Advisory") {
+      $type = "enhancement";
+      $severity = "";
+      $title = $xml->{$advisory}->{synopsis};
+    }
+		else {
+      $type = $xml->{$advisory}->{type};
+    }
       #################################
 
       ####### Upload the errata #######
-      $result = `pulp-admin rpm repo uploads erratum --title="$xml->{$advisory}->{synopsis}" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
+      $result = `pulp-admin rpm repo uploads erratum --title="$title" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --severity="$severity" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
 
       &info("$result\n");
       #################################
