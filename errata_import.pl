@@ -74,11 +74,6 @@ if (not(-f $erratafile)) {
 # Output $version string in debug mode
 &debug("Version is $version\n");
 
-#############################
-# Initialize connection #
-#############################
-&login;
-
 ############################
 # Read the XML errata file #
 ############################
@@ -119,7 +114,7 @@ if (defined($rhsaovalfile)) {
 
 if(!@repolist) {
   &debug("Getting full repo list\n");
-  @repolist = `pulp-admin repo list -s | awk '{print \$1}' `;
+  @repolist = `pulp-admin -u $user -p $password repo list -s | awk '{print \$1}' `;
 }
 else {
   &debug("Using repo list from command line options: ".join(', ',@repolist)."\n");
@@ -131,7 +126,7 @@ foreach my $repo (sort(@repolist)) {
   &debug("Getting errata from $repo\n");
 
   # Collect existing errata
-  my @repoerrata = `pulp-admin rpm repo content errata --repo-id=$repo --fields=id | grep Id: | awk '{print \$2}' `;
+  my @repoerrata = `pulp-admin -u $user -p $password rpm repo content errata --repo-id=$repo --fields=id | grep Id: | awk '{print \$2}' `;
   chomp @repoerrata;
   foreach my $errata (@repoerrata) {
     &debug("Found existing errata for $errata\n");
@@ -139,7 +134,7 @@ foreach my $repo (sort(@repolist)) {
   }
 
   # Get all packages in current channel
-  my @allpkg = `pulp-admin rpm repo content rpm --repo-id=$repo --fields=filename | grep Filename: | awk '{print \$2}' `;
+  my @allpkg = `pulp-admin -u $user -p $password rpm repo content rpm --repo-id=$repo --fields=filename | grep Filename: | awk '{print \$2}' `;
   chomp @allpkg;
 
   # Go through each package
@@ -228,7 +223,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
         my $filename = $package;
         $filename =~ s/\+/\\\+/g;
 
-        @pkgdetails = `pulp-admin rpm repo content rpm --repo-id=$name2channel{$package} --match="filename=$filename" --fields=name,version,release,epoch,arch,checksum,checksumtype | awk '{print \$2}'`;
+        @pkgdetails = `pulp-admin -u $user -p $password rpm repo content rpm --repo-id=$name2channel{$package} --match="filename=$filename" --fields=name,version,release,epoch,arch,checksum,checksumtype | awk '{print \$2}'`;
         chomp @pkgdetails;
         print $fh "$pkgdetails[4],$pkgdetails[6],$pkgdetails[5],$pkgdetails[3],$pkgdetails[0],$package,$pkgdetails[1],$pkgdetails[2],N/A\n";
       }
@@ -259,7 +254,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
       #################################
 
       ####### Upload the errata #######
-      $result = `pulp-admin rpm repo uploads erratum --title="$title" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --severity="$severity" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
+      $result = `pulp-admin -u $user -p $password rpm repo uploads erratum --title="$title" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --severity="$severity" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
 
       &info("$result\n");
       #################################
@@ -274,7 +269,6 @@ foreach $advisory (sort(keys(%{$xml}))) {
   }
 }
 
-&logout;
 exit;
 
 # SUBS
@@ -332,34 +326,6 @@ sub uniq() {
   @all{@_} = 1;
   return (keys %all);
 }
-
-sub login() {
-  if (not(defined($user))) {
-    &error("\$user not set\n");
-    exit 3;
-  }
-  if (not(defined($password))) {
-    &error("\$password not set\n");
-    exit 3;
-  }
-
-  system("pulp-admin", "login", "--username", $user, "--password", $password);
-  if ( $? != 0 )
-  {
-    &error("Login failed: $? - $! \n");
-    exit 1;
-  }
-  else
-  {
-    &info("Login successful\n");
-  }
-}
-
-sub logout() {
-  &debug("Logging out.\n");
-  system("pulp-admin", "logout");
-}
-
 
 sub find_packages() {
   #  INPUT: Advisory, e.g. CESA-2013:0123

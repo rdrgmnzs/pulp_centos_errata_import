@@ -1,3 +1,8 @@
+2016-03-03 Release 0.4.0
+- Configure to import Errata Severity when Security Advisory. - @eduardohki
+- Removed the usage of 'pulp-admin login', since it is being
+  deprecated by Katello. http://projects.theforeman.org/issues/12841
+
 2015-12-31 Release 0.3.0
 - Add the ability to import descriptions from redhats OVAL XML file.
 
