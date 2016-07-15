@@ -16,10 +16,9 @@ which can be found at http://cefs.steve-meier.de/
 
 # Usage
   1. Sync repositories
-  2. Run the script  
+  2. Run the script - The user name and password can be found under /etc/pulp/server.conf
      wget -N http://cefs.steve-meier.de/errata.latest.xml  
      ./errata_import.pl --errata=errata.latest.xml --user=[admin] --password=[pass]  
-     ( The user name and password can be found under /etc/pulp/server.conf )
   3. Sync repositories so that errata is published. (The errata will not show up on the Katello/Foreman interface until this step is completed. )
 
 # Warning
