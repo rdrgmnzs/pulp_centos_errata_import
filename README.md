@@ -25,17 +25,24 @@ which can be found at http://cefs.steve-meier.de/
 # Parameters 
 
 [Required]
---errata    - Path to the errata XML file.
---user      - Pulp user (Usually admin, unless you are creating a pulp user specifically for this script)
---password  - Pulp password (Found under /etc/pulp/server.conf, unless you are creating a pulp user specifically for this script)
+
+  --errata    - Path to the errata XML file.  
+
+  --user      - Pulp user (Usually admin, unless you are creating a pulp user specifically for this script). 
+
+  --password  - Pulp password (Found under /etc/pulp/server.conf, unless you are creating a pulp user specifically for this script).  
 
 [Optional]
---rhsa-oval     - Path to the OVAL XML file from Red Hat (recommended)
---include-repo  - Only consider packages and errata in the provided repositories. Can be provided multiple times.
+
+  --rhsa-oval     - Path to the OVAL XML file from Red Hat (recommended)
+
+  --include-repo  - Only consider packages and errata in the provided repositories. Can be provided multiple times.
 
 [Logging]
---quiet         - Only print warnings and errors
---debug         - Set verbosity to debug (use this when reporting issues!)
+
+  --quiet         - Only print warnings and errors
+
+  --debug         - Set verbosity to debug (use this when reporting issues!)
 
 # Warning
 
