@@ -11,7 +11,7 @@ To run this script on CentOS you need:
  - perl-XML-Simple
  - perl-Text-Unidecode 
 
-This script was modified from Steve Meier's script for spacewalk 
+This script was modified from Steve Meier's script for spacewalk  
 which can be found at http://cefs.steve-meier.de/
 
 # Usage
@@ -41,7 +41,7 @@ which can be found at http://cefs.steve-meier.de/
 
 - I offer no garantees that this script will work for you.
   It is offered as is!
-- I have no previews experience with perl, so this script
+- I have no previous experience with perl, so this script
   will probably look horrific to anyone familiar with the
   language.
 
