@@ -22,6 +22,21 @@ which can be found at http://cefs.steve-meier.de/
   3. Go to "Administer" > "Settings" > "Katello" and set "force_post_sync_action" to true. (Katello 3.0 and up)
   4. Sync repositories so that errata is published. (The errata will not show up on the Katello/Foreman interface until this step is completed. )
 
+# Parameters 
+
+[Required]
+--errata    - Path to the errata XML file.
+--user      - Pulp user (Usually admin, unless you are creating a pulp user specifically for this script)
+--password  - Pulp password (Found under /etc/pulp/server.conf, unless you are creating a pulp user specifically for this script)
+
+[Optional]
+--rhsa-oval     - Path to the OVAL XML file from Red Hat (recommended)
+--include-repo  - Only consider packages and errata in the provided repositories. Can be provided multiple times.
+
+[Logging]
+--quiet         - Only print warnings and errors
+--debug         - Set verbosity to debug (use this when reporting issues!)
+
 # Warning
 
 - I offer no garantees that this script will work for you.
