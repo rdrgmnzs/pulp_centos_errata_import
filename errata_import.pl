@@ -5,7 +5,7 @@
 # is the road to madness...
 #
 # To run this script on CentOS 5.x you need
-# perl-XML-Simple, perl-Text-Unidecode and perl-Frontier-RPC
+# perl-XML-Simple, perl-XML-Parser, perl-Text-Unidecode and perl-Frontier-RPC
 #
 # This script was modified from Steve Meier's script which
 # can be found at http://cefs.steve-meier.de/
@@ -22,6 +22,7 @@ use Data::Dumper;
 use Getopt::Long;
 import Text::Unidecode;
 import XML::Simple;
+import XML::Parser;
 
 # Version information
 my $version = "20150616";
@@ -73,6 +74,9 @@ if (not(-f $erratafile)) {
 
 # Output $version string in debug mode
 &debug("Version is $version\n");
+
+# XML::Parser is 10x as fast loading these XML files as XML::SAX
+$ENV{XML_SIMPLE_PREFERRED_PARSER} = 'XML::Parser';
 
 ############################
 # Read the XML errata file #
@@ -319,6 +323,9 @@ sub eval_modules() {
 
   eval { require XML::Simple; };
   if ($@) { die "ERROR: You are missing XML::Simple\n       CentOS: yum install perl-XML-Simple\n"; };
+
+  eval { require XML::Parser; };
+  if ($@) { die "ERROR: You are missing XML::Parser\n       CentOS: yum install perl-XML-Parser\n"; };
 }
 
 sub uniq() {
