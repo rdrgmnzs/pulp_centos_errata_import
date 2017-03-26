@@ -9,6 +9,7 @@ To run this script on CentOS you need:
  - pulp-admin-client
  - pulp-rpm-admin-extensions
  - perl-XML-Simple
+ - perl-XML-Parser
  - perl-Text-Unidecode 
 
 This script was modified from Steve Meier's script for spacewalk  
