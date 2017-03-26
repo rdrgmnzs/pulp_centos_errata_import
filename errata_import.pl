@@ -208,6 +208,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
         $xml->{$advisory}->{description} = unidecode($xml->{$advisory}->{description});
         # Escape quotes in the description
         $xml->{$advisory}->{description} =~ s/\"/\\\"/g;
+        $xml->{$advisory}->{description} =~ s/\Q\\"\E/\\\\\\\"/g;
       }
     }
 

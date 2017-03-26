@@ -1,3 +1,8 @@
+2017-03-25 Release 0.5.0
+- Use XML::Parser instead of default for performance increase. - @stevenstremciuc
+- Ironic escape bug when importing OVAL XML info for CESA-2012:0884. - @stevenstremciuc
+- Security Update, make --user/--password optional. - @alanwevans
+
 2016-03-03 Release 0.4.0
 - Configure to import Errata Severity when Security Advisory. - @eduardohki
 - Removed the usage of 'pulp-admin login', since it is being
