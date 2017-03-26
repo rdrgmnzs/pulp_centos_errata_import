@@ -25,7 +25,11 @@ import XML::Simple;
 import XML::Parser;
 
 # Version information
-my $version = "20150616";
+my $version = "20170130";
+
+# Constants
+use constant ADMIN_CERT => "$ENV{HOME}/.pulp/user-cert.pem";
+use constant ADMIN_CONF => "$ENV{HOME}/.pulp/admin.conf";
 
 # Variable declation
 $| = 1;
@@ -33,9 +37,9 @@ my $user;
 my $password;
 my ($xml, $erratafile, $rhsaxml, $rhsaovalfile);
 my (%name2id, %name2channel);
-my $publish = 0; # do not publish by default
 my $debug = 0;
 my $quiet = 0;
+my $pulp_args = '';
 my $getopt;
 my $reference;
 my $result;
@@ -55,8 +59,8 @@ $getopt = GetOptions( 'errata=s'		=> \$erratafile,
                       'rhsa-oval=s'		=> \$rhsaovalfile,
                       'debug'			=> \$debug,
                       'quiet'			=> \$quiet,
-                      'user=s'			=> \$user,
-                      'password=s'		=> \$password,
+                      'user:s'			=> \$user,
+                      'password:s'		=> \$password,
                       'include-repo=s{,}'	=> \@repolist
                      );
 
@@ -69,6 +73,16 @@ if ( not(defined($erratafile))) {
 # Do we have a proper errata file?
 if (not(-f $erratafile)) {
   &error("$erratafile is not an errata file!\n");
+  exit 1;
+}
+
+# Set pulp_args if user/password are provided
+# otherwise make sure ~pulp/admin.conf or user-cert.pem exist
+if (defined($user) && defined($password)) {
+  $pulp_args = "-u $user -p $password";
+  &warning("Passing user and password on the commandline is a security risk.  See README.md\n");
+} elsif (not(-f ADMIN_CERT || -f ADMIN_CONF)) {
+  &error("Please create ".ADMIN_CERT." and/or ".ADMIN_CONF.".  See README.md\n");
   exit 1;
 }
 
@@ -118,7 +132,7 @@ if (defined($rhsaovalfile)) {
 
 if(!@repolist) {
   &debug("Getting full repo list\n");
-  @repolist = `pulp-admin -u $user -p $password repo list -s | awk '{print \$1}' `;
+  @repolist = `pulp-admin $pulp_args repo list -s | awk '{print \$1}' `;
 }
 else {
   &debug("Using repo list from command line options: ".join(', ',@repolist)."\n");
@@ -130,7 +144,7 @@ foreach my $repo (sort(@repolist)) {
   &debug("Getting errata from $repo\n");
 
   # Collect existing errata
-  my @repoerrata = `pulp-admin -u $user -p $password rpm repo content errata --repo-id=$repo --fields=id | grep Id: | awk '{print \$2}' `;
+  my @repoerrata = `pulp-admin $pulp_args rpm repo content errata --repo-id=$repo --fields=id | grep Id: | awk '{print \$2}' `;
   chomp @repoerrata;
   foreach my $errata (@repoerrata) {
     &debug("Found existing errata for $errata\n");
@@ -138,7 +152,7 @@ foreach my $repo (sort(@repolist)) {
   }
 
   # Get all packages in current channel
-  my @allpkg = `pulp-admin -u $user -p $password rpm repo content rpm --repo-id=$repo --fields=filename | grep Filename: | awk '{print \$2}' `;
+  my @allpkg = `pulp-admin $pulp_args rpm repo content rpm --repo-id=$repo --fields=filename | grep Filename: | awk '{print \$2}' `;
   chomp @allpkg;
 
   # Go through each package
@@ -227,7 +241,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
         my $filename = $package;
         $filename =~ s/\+/\\\+/g;
 
-        @pkgdetails = `pulp-admin -u $user -p $password rpm repo content rpm --repo-id=$name2channel{$package} --match="filename=$filename" --fields=name,version,release,epoch,arch,checksum,checksumtype | awk '{print \$2}'`;
+        @pkgdetails = `pulp-admin $pulp_args rpm repo content rpm --repo-id=$name2channel{$package} --match="filename=$filename" --fields=name,version,release,epoch,arch,checksum,checksumtype | awk '{print \$2}'`;
         chomp @pkgdetails;
         print $fh "$pkgdetails[4],$pkgdetails[6],$pkgdetails[5],$pkgdetails[3],$pkgdetails[0],$package,$pkgdetails[1],$pkgdetails[2],N/A\n";
       }
@@ -258,7 +272,7 @@ foreach $advisory (sort(keys(%{$xml}))) {
       #################################
 
       ####### Upload the errata #######
-      $result = `pulp-admin -u $user -p $password rpm repo uploads erratum --title="$title" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --severity="$severity" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
+      $result = `pulp-admin $pulp_args rpm repo uploads erratum --title="$title" --description="$xml->{$advisory}->{description}" --version=$xml->{$advisory}->{release} --release="$pkgdetails[5]" --type="$type" --severity="$severity" --status="final" --updated="$xml->{$advisory}->{issue_date}" --issued="$xml->{$advisory}->{issue_date}" --reference-csv=$reffile --pkglist-csv=$packfile --from=$xml->{$advisory}->{from} --repo-id=$name2channel{$packages[0]} --erratum-id=$advid`;
 
       &info("$result\n");
       #################################
@@ -304,10 +318,10 @@ sub usage() {
   print "\n";
   print "REQUIRED:\n";
   print "  --errata\t\tThe XML file containing errata information\n";
-  print "  --user\t\tPulp user\n";
-  print "  --password\t\tPulp password\n";
   print "\n";
   print "OPTIONAL\n";
+  print "  --user\t\tPulp user\n";
+  print "  --password\t\tPulp password\n";
   print "  --rhsa-oval\tOVAL XML file from Red Hat (recommended)\n";
   print "  --include-repo\tOnly consider packages and errata in the provided repositories. Can be provided multiple times\n";
   print "\n";
