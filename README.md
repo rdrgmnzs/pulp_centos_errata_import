@@ -31,29 +31,29 @@ pulp-admin must authenticate to pulp.  This authentication information can be pr
   1. User certificate (~/.pulp/user-cert.pem) **RECOMMENDED**  
     If you are using this script with katello, the foreman-installer creates a certificate suitable for use with pulp.  You can use the cert by doing the following:
 
-    ```shell
-    sudo cat /etc/pki/katello/certs/pulp-client.crt /etc/pki/katello/private/pulp-client.key > ~/.pulp/user-cert.pem
-    chown 400 ~/pulp/user-cert.pem
-    ```
+```shell
+sudo cat /etc/pki/katello/certs/pulp-client.crt /etc/pki/katello/private/pulp-client.key > ~/.pulp/user-cert.pem
+chown 400 ~/.pulp/user-cert.pem
+```
   2. Admin configuration file (~/.pulp/admin.conf) **RECOMMENDED**  
     You can provide the auth credentials in the pulp-admin configuration file.  Simply create ~/.pulp/admin.conf, you can get the password from /etc/pulp/server.conf (default_password).
 
-    ```ini
-    [auth]
-    username: admin
-    password: <password>
-    ```
-    Make sure the permissions on this file are restrictive.
+```ini
+[auth]
+username: admin
+password: <password>
+```
+Make sure the permissions on this file are restrictive.
 
-    ```shell
-    chmod 400 ~/.pulp/admin.conf
-    ```
+```shell
+chmod 400 ~/.pulp/admin.conf
+```
   3. Command line parameters (--user, --password) **NOT RECOMMENDED**  
     It is **strongly** recommended that you do not use this method.
 
-    ```shell
-    ./errata_import.pl --errata=<errata_file> --user=admin --password=<password>
-    ```
+```shell
+./errata_import.pl --errata=<errata_file> --user=admin --password=<password>
+```
 For methods 1 and 2, it is probably advisable to not store these credentials in a normal user's home directory.  You might consider using the root user for pulp-admin tasks.  Then non-privileged users can be given rights explicitly through sudo.  
 
 # Parameters 
@@ -83,4 +83,5 @@ For methods 1 and 2, it is probably advisable to not store these credentials in 
 
 Please feel free to make pull requests for any
 issues or errors in the script you may find.
+
 

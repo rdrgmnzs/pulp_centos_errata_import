@@ -1,3 +1,6 @@
+2017-03-25 Release 0.5.1
+- Fix typo in documentation. - Thabnks @demueller
+
 2017-03-25 Release 0.5.0
 - Use XML::Parser instead of default for performance increase. - @stevenstremciuc
 - Ironic escape bug when importing OVAL XML info for CESA-2012:0884. - @stevenstremciuc
