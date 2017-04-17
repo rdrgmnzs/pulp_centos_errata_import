@@ -278,6 +278,8 @@ foreach $advisory (sort(keys(%{$xml}))) {
       &info("$result\n");
       #################################
 
+      unlink($reffile, $packfile);
+
     } else {
       # There is no related package so there is no errata created
       &notice("Skipping errata $advid ($xml->{$advisory}->{synopsis}) -- No packages found\n");
