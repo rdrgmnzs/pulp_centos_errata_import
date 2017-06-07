@@ -33,7 +33,7 @@ pulp-admin must authenticate to pulp.  This authentication information can be pr
 
 ```shell
 sudo cat /etc/pki/katello/certs/pulp-client.crt /etc/pki/katello/private/pulp-client.key > ~/.pulp/user-cert.pem
-chown 400 ~/.pulp/user-cert.pem
+chmod 400 ~/.pulp/user-cert.pem
 ```
   2. Admin configuration file (~/.pulp/admin.conf) **RECOMMENDED**  
     You can provide the auth credentials in the pulp-admin configuration file.  Simply create ~/.pulp/admin.conf, you can get the password from /etc/pulp/server.conf (default_password).
