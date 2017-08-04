@@ -21,7 +21,7 @@ which can be found at http://cefs.steve-meier.de/
   3. Run the script  
      wget -N http://cefs.steve-meier.de/errata.latest.xml
      ./errata_import.pl --errata=errata.latest.xml [--user=admin] [--password=pass]  
-  4. Go to "Administer" > "Settings" > "Katello" and set "force_post_sync_action" to true. (Katello 3.0 and up)
+  4. Go to "Administer" > "Settings" > "Content" and set "force_post_sync_action" to true. (Katello 3.0 and up)
   5. Sync repositories so that errata is published. (The errata will not show up on the Katello/Foreman interface until this step is completed. )
 
 # Authentication
